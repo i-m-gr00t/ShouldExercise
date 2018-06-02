@@ -19,6 +19,7 @@ mongoose.connect(`mongodb://${MONGO_URL}/shouldexercise`);
 
 let usersRouter = require('./routes/users');
 let gamesRouter = require('./routes/games');
+let coordsRouter = require('./routes/coords');
 
 let app = express();
 
