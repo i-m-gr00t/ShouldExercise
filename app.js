@@ -19,6 +19,7 @@ mongoose.connect(`mongodb://${MONGO_URL}/shouldexercise`);
 
 let usersRouter = require('./routes/users');
 let gamesRouter = require('./routes/games');
+let coordsRouter = require('./routes/coords');
 
 let app = express();
 
@@ -31,6 +32,7 @@ app.use(cors());
 
 app.use('/api/users', usersRouter);
 app.use('/api/games', gamesRouter);
+app.use('/api/coords', coordsRouter);
 
 app.use((req, res, next) => {
   next(createError(404));
