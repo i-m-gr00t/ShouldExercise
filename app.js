@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
-const MONGO_URL = "18.188.13.173";
+const MONGO_URL = "127.0.0.1:27017";
 
 let db = mongoose.connection;
 db.on('error', console.error);

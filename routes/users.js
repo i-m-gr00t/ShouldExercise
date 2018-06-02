@@ -1,13 +1,10 @@
 const express = require('express');
-let router = express.Router();
+const router = express.Router();
 const jwt = require('jsonwebtoken');
-
 const authMiddleware = require('../middlewares/auth');
-
+/* import models */
 const User = require('../models/user');
 const Coord = require('../models/coord');
-
-router.use('/', authMiddleware);
 
 router.get('/', (req, res) => {
   User.find()
@@ -19,7 +16,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/find', (req, res) => {
+router.get('/find', authMiddleware, (req, res) => {
   User.findOne({ id: req.decoded.id })
     .then(user => {
       return res.status(200).json(user);
@@ -29,46 +26,13 @@ router.get('/find', (req, res) => {
     });
 });
 
-/*
-router.post('/', (req, res) => {
-  let coord = new Coord();
-  coord.lat = req.body.lat;
-  coord.lng = req.body.lng;
-  coord.save(err => {
-    if (err) return;
-  });
-
-  Coord.findOne({ lat: req.body.lat, lng: req.body.lng }, (err, coord) => {
-    if (err) return res.status(500).json({ error: err });
-    if (!coord) return res.status(404).json({ error: 'Not Found' });
-    let user = new User();
-    user.id = req.body.id;
-    user.password = req.body.password;
-    user.name = req.body.name;
-    user.age = parseInt(req.body.age);
-    user.favorite = req.body.favorite;
-    user.introduce = req.body.introduce;
-    user.live = req.body.live;
-    user.coord = coord._id;
-    user.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({ result: 0 });
-        return;
-      }
-      res.json({ result: 1 });
-    });
-  });
-});
-*/
-
-router.put('/update', (req, res) => {
+router.put('/update', authMiddleware, (req, res) => {
   const modify = (user) => {
     if (!user) {
       throw new Error('User Not found');
     }
 
-    return User.modify(req.body);
+    return user.modify(req.body);
   }
 
   const respond = () => {
@@ -109,7 +73,7 @@ router.post('/', (req, res) => {
     .catch(onError);
 });
 
-router.delete('/delete', (req, res) => {
+router.delete('/delete', authMiddleware, (req, res) => {
   User.remove({ _id: req.decoded._id }, err => {
     if (err) res.status(500).end();
     res.status(204).end();
@@ -125,7 +89,7 @@ router.post('/login', (req, res) => {
 
   User.findOneByUserID(id)
     .then(user => {
-      if (user.verify(password)) {
+      if (user.verify(pw)) {
         jwt.sign(
           {
             _id: user._id,

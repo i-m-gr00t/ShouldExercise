@@ -8,19 +8,15 @@ let userSchema = new Schema({
   age: Number,
   introduce: String,
   favorite: String,
-  coord: { type: Schema.Types.ObjectId, ref: 'coord' }
+  coord: Object
 });
 
 userSchema.statics.create = function (body) {
-  let coord = new Coord();
-  coord.lat = req.body.lat;
-  coord.lng = req.body.lng;
+  let coord = { };
+  coord.lat = body.lat;
+  coord.lng = body.lng;
 
-  coord.save(err => {
-    if (err) throw new Error('DB Error');
-  });
-
-  let user = new User();
+  let user = new this();
   user.id = body.id;
   user.password = body.password;
   user.name = body.name;
@@ -28,12 +24,7 @@ userSchema.statics.create = function (body) {
   user.favorite = body.favorite;
   user.introduce = body.introduce;
   user.live = body.live;
-
-  Coord.findOne({ lat: req.body.lat, lng: req.body.lng }, (err, coord) => {
-    if (err) throw new Error('DB Error');
-    if (!coord) throw new Error('DB Not Found');
-    user.coord = coord._id;
-  });
+  user.coord = coord;
 
   // return the Promise
   return user.save();
@@ -44,7 +35,8 @@ userSchema.statics.findOneByUserID = function (userid) {
 }
 
 userSchema.methods.verify = function (password) {
-  return this.password === password;
+  if (this.password === password) return true;
+  else return false;
 }
 
 userSchema.methods.modify = function (body) {
