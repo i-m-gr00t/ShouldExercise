@@ -23,4 +23,4 @@ router.get('/find/:_id', (req, res) => {
   });
 });
 
-module.exports = mongoose.model('coord', coordSchema);
+module.exports = router;
