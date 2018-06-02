@@ -1,5 +1,6 @@
 const express = require('express');
 let router = express.Router();
+const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 const Coord = require('../models/coord');
@@ -80,7 +81,7 @@ router.put('/update/:_id', (req, res) => {
 });
 
 router.delete('/delete/:_id', (req, res) => {
-  User.remove({ _id: req.params._id }, err => {
+  User.remove({_id : req.params._id}, err => {
     if (err) res.status(500).end();
     res.status(204).end();
   });
@@ -100,40 +101,35 @@ router.post('/login', (req, res) => {
 });
 
 router.post('/register', (req, res) => {
-  let body = req.body;
-  let user = { };
+  let {id, password, name, age, favorite, introduce, live} = req.body;
 
-  User.findOne({id: req.body.id})
-    .then(() => {
-      res.status(200).json({message : "id was already taken"});
-    })
-    .catch(err => {
-      res.status(500).json({ error: 'DB Failure' });
-    });
+  if (id == null || password == null || name == null) {
+    console.log('id: ' + id);
+    console.log('pw: ' + name);
+    console.log('name: ' + name);
 
-  if (req.body.id) user.id = req.body.id;
-  if (req.body.password) user.password = req.body.password;
-  if (req.body.name) user.name = req.body.name;
-  if (req.body.age) user.age = parseInt(req.body.age);
-  if (req.body.favorite) user.favorite = req.body.favorite;
-  if (req.body.introduce) user.introduce = req.body.introduce;
-  if (req.body.live) user.live = req.body.live;
-
-  if (req.body.id && req.body.password && req.body.name) {
-    res.status(200).json({error : 'Invalid input!'});
+    return res.status(200).json({message: 'Invalid input'});
   }
 
-  let _user = new User({
-    id : user.id,
-    password : user.password,
-    name : user.name,
-    age : user.age,
-    favorite : user.favorite,
-    introduce : user.introduce,
-    live : user.live
+  User.findOne({id: id})
+    .then(() => {
+      return res.status(200).json({message : "id was already taken"});
+    })
+    .catch(err => {
+      return res.status(500).json({ error: 'DB Failure' });
+    });
+
+  let user = new User({
+    id : id,
+    password : password,
+    name : name,
+    age : age,
+    favorite : favorite,
+    introduce : introduce,
+    live : live
   });
 
-  _user.save(err => {
+  user.save(err => {
     if (err) {
       console.error(err);
       res.status(500).json({ result: 0 });
