@@ -23,4 +23,18 @@ router.get('/find/:_id', (req, res) => {
   });
 });
 
+router.post('/', (req, res) => {
+  let coord = new Coord();
+  coord.lat = req.body.lat;
+  coord.lng = req.body.lng;
+  coord.save(err => {
+    if (err) {
+      console.error(err);
+      res.json({result: 0});
+      return;
+    }
+    res.json({result: 1});
+  });
+});
+
 module.exports = router;
