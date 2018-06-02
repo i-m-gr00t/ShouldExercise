@@ -2,8 +2,12 @@ const express = require('express');
 let router = express.Router();
 const jwt = require('jsonwebtoken');
 
+const authMiddleware = require('../middlewares/auth');
+
 const User = require('../models/user');
 const Coord = require('../models/coord');
+
+router.use('/', authMiddleware);
 
 router.get('/', (req, res) => {
   User.find()
@@ -15,16 +19,17 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/find/:_id', (req, res) => {
-  User.findOne({ _id: req.params._id })
-    .then(users => {
-      res.status(200).json(users);
+router.get('/find', (req, res) => {
+  User.findOne({ id: req.decoded.id })
+    .then(user => {
+      return res.status(200).json(user);
     })
     .catch(err => {
-      res.status(500).send({ error: 'DB Failure' });
+      return res.status(500).send({ error: 'DB Failure' });
     });
 });
 
+/*
 router.post('/', (req, res) => {
   let coord = new Coord();
   coord.lat = req.body.lat;
@@ -55,88 +60,96 @@ router.post('/', (req, res) => {
     });
   });
 });
+*/
 
-router.put('/update/:_id', (req, res) => {
-  User.findById(req.params._id, (err, users) => {
-    if (err) return res.status(500).json({ error: err });
-    if (!URLSearchParams) return res.status(404).json({ error: 'Not Found' });
+router.put('/update', (req, res) => {
+  const modify = (user) => {
+    if (!user) {
+      throw new Error('User Not found');
+    }
 
-    if (req.body.id) user.id = req.body.id;
-    if (req.body.password) user.password = req.body.password;
-    if (req.body.name) user.name = req.body.name;
-    if (req.body.age) user.age = parseInt(req.body.age);
-    if (req.body.favorite) user.favorite = req.body.favorite;
-    if (req.body.introduce) user.introduce = req.body.introduce;
-    if (req.body.live) user.live = req.body.live;
+    return User.modify(req.body);
+  }
 
-    user.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({ result: 0 });
-        return;
-      }
-      res.json({ result: 1 });
-    });
-  });
+  const respond = () => {
+    res.status(200).json({ result: 1 });
+  }
+
+  const onError = (error) => {
+    res.status(500).json({ success: false, message: error.message });
+  }
+
+  User.findOneByUserID(req.decoded.id)
+    .then(modify)
+    .then(respond)
+    .catch(onError);
 });
 
-router.delete('/delete/:_id', (req, res) => {
-  User.remove({_id : req.params._id}, err => {
+/* Register */
+router.post('/', (req, res) => {
+  const create = (user) => {
+    if (user) {
+      throw new Error('user id was already taken');
+    } else {
+      return User.create(req.body);
+    }
+  }
+
+  const respond = () => {
+    return res.status(200).json({ result: 1 });
+  }
+
+  const onError = (error) => {
+    res.status(500).json({ success: false, message: error.message });
+  }
+
+  User.findOneByUserID(req.body.id)
+    .then(create)
+    .then(respond)
+    .catch(onError);
+});
+
+router.delete('/delete', (req, res) => {
+  User.remove({ _id: req.decoded._id }, err => {
     if (err) res.status(500).end();
     res.status(204).end();
   });
 });
 
+/* Login */
 router.post('/login', (req, res) => {
-  let id = req.body.id;
-  let pw = req.body.password;
+  const id = req.body.id;
+  const pw = req.body.password;
 
-  User.findOne({ id: id, password: pw })
+  const secret = req.app.get('jwt-secret');
+
+  User.findOneByUserID(id)
     .then(user => {
-      res.status(200).json(user._id);
+      if (user.verify(password)) {
+        jwt.sign(
+          {
+            _id: user._id,
+            id: user.id,
+            name: user.name
+          },
+          secret,
+          {
+            expiresIn: '7d',
+            issuer: 'velopert.com',
+            subject: 'userInfo'
+          },
+          (err, token) => {
+            if (err) return res.status(500).json(
+              { success: false, message: 'DB Failed!' }
+            );
+            res.status(200).json({ result: token });
+          }
+        );
+      }
     })
     .catch(err => {
-      res.status(500).json({ error: 'DB Failure' });
+      res.status(500).json({ success: false, message: 'DB Failed!' });
     });
-});
-
-router.post('/register', (req, res) => {
-  let {id, password, name, age, favorite, introduce, live} = req.body;
-
-  if (id == null || password == null || name == null) {
-    console.log('id: ' + id);
-    console.log('pw: ' + name);
-    console.log('name: ' + name);
-
-    return res.status(200).json({message: 'Invalid input'});
-  }
-
-  User.findOne({id: id})
-    .then(() => {
-      return res.status(200).json({message : "id was already taken"});
-    })
-    .catch(err => {
-      return res.status(500).json({ error: 'DB Failure' });
-    });
-
-  let user = new User({
-    id : id,
-    password : password,
-    name : name,
-    age : age,
-    favorite : favorite,
-    introduce : introduce,
-    live : live
-  });
-
-  user.save(err => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ result: 0 });
-      return;
-    }
-    res.json({ result: 1 });
-  });
 });
 
 module.exports = router;

@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
-const MONGO_URL = "18.188.37.173:27017";
+const MONGO_URL = "18.188.13.173";
 
 let db = mongoose.connection;
 db.on('error', console.error);
@@ -33,6 +33,8 @@ app.use(cors());
 app.use('/api/users', usersRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/coords', coordsRouter);
+
+app.set('jwt-secret', 'SeCrEtKeYfOrHaShInG');
 
 app.use((req, res, next) => {
   next(createError(404));
