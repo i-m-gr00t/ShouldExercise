@@ -21,3 +21,4 @@ let gameSchema = new Schema({
   coord: {type: Schema.Types.ObjectId, ref: 'coord'}
 });
 
+module.exports = mongoose.model('game', gameSchema);
