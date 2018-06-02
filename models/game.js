@@ -18,7 +18,10 @@ let gameSchema = new Schema({
   end_date: Date,
   introduce: String,
   event: String,
-  coord: {type: Schema.Types.ObjectId, ref: 'coord'}
+  coord: {
+    lat: Number,
+    lng: Number
+  }
 });
 
 module.exports = mongoose.model('game', gameSchema);

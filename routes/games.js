@@ -3,7 +3,6 @@ let router = express.Router();
 
 const User = require('../models/user');
 const Game = require('../models/game');
-const Coord = require('../models/coord');
 
 router.get('/', (req, res) => {
   Game.find()

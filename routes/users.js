@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middlewares/auth');
+
 /* import models */
 const User = require('../models/user');
-const Coord = require('../models/coord');
 
-router.get('/', (req, res) => {
+router.get('/admin', (req, res) => {
   User.find()
     .then(users => {
       res.status(200).json(users);
@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/find', authMiddleware, (req, res) => {
+router.get('/', authMiddleware, (req, res) => {
   User.findOne({ id: req.decoded.id })
     .then(user => {
       return res.status(200).json(user);
@@ -26,7 +26,7 @@ router.get('/find', authMiddleware, (req, res) => {
     });
 });
 
-router.put('/update', authMiddleware, (req, res) => {
+router.put('/', authMiddleware, (req, res) => {
   const modify = (user) => {
     if (!user) {
       throw new Error('User Not found');
@@ -50,7 +50,7 @@ router.put('/update', authMiddleware, (req, res) => {
 });
 
 /* Register */
-router.post('/', (req, res) => {
+router.post('/register', (req, res) => {
   const create = (user) => {
     if (user) {
       throw new Error('user id was already taken');
@@ -73,7 +73,7 @@ router.post('/', (req, res) => {
     .catch(onError);
 });
 
-router.delete('/delete', authMiddleware, (req, res) => {
+router.delete('/', authMiddleware, (req, res) => {
   User.remove({ _id: req.decoded._id }, err => {
     if (err) res.status(500).end();
     res.status(204).end();
@@ -99,7 +99,7 @@ router.post('/login', (req, res) => {
           secret,
           {
             expiresIn: '7d',
-            issuer: 'velopert.com',
+            issuer: 'weshouldexercise.oa.to',
             subject: 'userInfo'
           },
           (err, token) => {

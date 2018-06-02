@@ -8,7 +8,10 @@ let userSchema = new Schema({
   age: Number,
   introduce: String,
   favorite: String,
-  coord: Object
+  coord: {
+    lat: Number,
+    lng: Number
+  }
 });
 
 userSchema.statics.create = function (body) {
