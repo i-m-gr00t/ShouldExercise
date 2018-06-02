@@ -32,6 +32,7 @@ app.use(cors());
 
 app.use('/api/users', usersRouter);
 app.use('/api/games', gamesRouter);
+app.use('/api/coords', coordsRouter);
 
 app.use((req, res, next) => {
   next(createError(404));
