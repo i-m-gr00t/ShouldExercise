@@ -1,0 +1,23 @@
+{
+  "name": "shouldexercise",
+  "version": "1.0.0",
+  "description": "제 3회 하이톤: 월드컵 아이엠그루트 팀 작품  \r 그래도 운동은 해야지?  \r ShouldExercise",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/i-m-gr00t/ShouldExercise.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/i-m-gr00t/ShouldExercise/issues"
+  },
+  "homepage": "https://github.com/i-m-gr00t/ShouldExercise#readme",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
