@@ -1,12 +1,14 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose');
+let Schema = mongoose.Schema;
 
-var user = new Schema({
-    name: {type: String, min:1, max: 15},
-    age: Number,
-    introduce: { type: String, max: 100},
-    favorite: String,
-    live: String,
+let userSchema = new Schema({
+  id: String,
+  password: String,
+  name: String,
+  age: Number,
+  introduce: String,
+  favorite: String,
+  coord: {type: Schema.Types.ObjectId, ref: 'coord'}
 });
 
-module.exports = mongoose.model('user', user);
+module.exports = mongoose.model('user', userSchema);
