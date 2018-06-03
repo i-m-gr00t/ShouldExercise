@@ -1,87 +1,102 @@
 const express = require('express');
-let router = express.Router();
+const router = express.Router();
+const authMiddleware = require('../middlewares/auth');
 
 const User = require('../models/user');
 const Game = require('../models/game');
 
-router.get('/', (req, res) => {
+router.get('/admin', (req, res) => {
   Game.find()
+    .then(games => {
+      res.status(200).json(games);
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'DB Failure' });
+    });
+});
+
+router.get('/', authMiddleware, (req, res) => {
+  User.findOneByUserID(req.decoded._id)
+  .then(user => {
+    return Game.find({master: req.decoded._id});
+  })
   .then(games => {
-    res.status(200).json(games);
+    return res.status(200).json(games);
   })
-  .catch(err => {
-    res.status(500).send({error: 'DB Failure'});
-  });
+  //.catch(err => {
+  //  res.status(500).json({ error: 'DB Failure' });
+  //});
 });
 
-router.get('/find/:_id', (req, res) => {
-  Game.findOne({_id: req.params._id})
-  .then(game => {
-    res.status(200).json(game);
-  })
-  .catch(err => {
-    res.status(500).send({error: 'DB Failure'});
-  });
-});
-
-router.post('/', (req, res) => {
-  User.findOne({id: req.body.id}, async (err, user) => {
-    let game = new Game();
-    game.name = req.body.name;
-    game.master = user._id;
-    game.joiners = null;
-    game.capacity.max_referee = req.body.max_referee;
-    game.capacity.max_player = req.body.max_player;
-    game.start_date = req.body.start_date;
-    game.end_date = req.body.end_date;
-    game.introduce = req.body.introduce;
-    game.event = req.body.event;
-    try {
-      game.coord = await Coord.findOne({_id: user.coord});
-    }
-    catch (err) {
-      console.log(err);
-    }
-    game.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({result: 0});
-        return;
-      }
-      res.json({result: 1});
+router.get('/:_id', (req, res) => {
+  Game.findOne({ _id: req.params._id })
+    .then(game => {
+      res.status(200).json(game);
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'DB Failure' });
     });
-  });
 });
 
-router.put('/update/:_id', (req, res) => {
-  Game.findById(req.params._id, (err, games) => {
-    if (req.body.name) game.name = req.body.name;
-    if (req.body.master) game.master = req.body.master;
-    if (req.body.joiners) game.joiners = req.body.joiners;
-    if (req.body.max_referee) game.capacity.max_referee = req.body.max_referee;
-    if (req.body.max_player) game.capacity.max_player = req.body.max_player;
-    if (req.body.start_date) game.start_date = req.body.start_date;
-    if (req.body.end_date) game.end_date = req.body.end_date;
-    if (req.body.introduce) game.introduce = req.body.introduce;
-    if (req.body.event) game.event = req.body.event;
-    if (req.body.coord) game.coord = req.body.coord;
+// 게임 등록
+router.post('/', authMiddleware, (req, res) => {
+  const create = (user) => {
+    if (!user)
+      throw new Error('DB Not Found');
 
-    games.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({result: 0});
-        return;
-      }
-      res.json({result: 1});
+    return Game.create(req.body, user);
+  }
+
+  const respond = () => {
+    return res.status(200).json({ result: 1 });
+  }
+
+  const onError = (error) => {
+    res.status(500).json({ success: false, message: error.message });
+  }
+
+  User.findOneByUserID(req.decoded.id)
+    .then(create)
+    .then(respond)
+    .catch(onError);
+});
+
+// 게임 수정
+router.put('/:_id', authMiddleware, (req, res) => {
+  const modify = (game) => {
+    if (!game)
+      throw new Error('DB Not Found!');
+
+    if (!game.verify(req.decoded._id))
+      throw new Error('Access denied');
+
+    return game.modify(req.body);
+  }
+
+  const respond = () => {
+    return res.status(200).json({ result: 1 });
+  }
+
+  const onError = (error) => {
+    res.status(500).json({ success: false, message: error.message });
+  }
+
+  Game.findById(req.params._id)
+    .then(modify)
+    .then(respond)
+    .catch(onError);
+});
+
+// 게임 삭제
+router.delete('/:_id', authMiddleware, (req, res) => {
+  if (!game.verify(req.decoded._id))
+    return res.status(500).json({ success: false, message: error.message });
+  
+  else
+    Game.remove({ _id: req.params._id }, err => {
+      if (err) res.status(500).end();
+      res.status(204).end();
     });
-  });
-});
-
-router.delete('/delete/:_id', (req, res) => {
-  Game.remove({_id: req.params._id}, err => {
-    if (err) res.status(500).end();
-    res.status(204).end();
-  });
 });
 
 module.exports = router;

@@ -12,7 +12,17 @@ router.get('/admin', (req, res) => {
       res.status(200).json(users);
     })
     .catch(err => {
-      res.status(500).send({ error: 'DB Failure' });
+      res.status(500).json({ error: 'DB Failure' });
+    });
+});
+
+router.get('/admin/:_id', (req, res) => {
+  User.findById(req.params._id)
+    .then(users => {
+      res.status(200).json(users);
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'DB Failure' });
     });
 });
 
@@ -22,7 +32,7 @@ router.get('/', authMiddleware, (req, res) => {
       return res.status(200).json(user);
     })
     .catch(err => {
-      return res.status(500).send({ error: 'DB Failure' });
+      return res.status(500).json({ error: 'DB Failure' });
     });
 });
 

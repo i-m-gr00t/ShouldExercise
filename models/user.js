@@ -15,17 +15,14 @@ let userSchema = new Schema({
 });
 
 userSchema.statics.create = function (body) {
-  let coord = { };
-  coord.lat = body.lat;
-  coord.lng = body.lng;
 
-  let user = new this();
-  user.id = body.id;
-  user.password = body.password;
-  user.name = body.name;
-  user.age = parseInt(body.age);
-  user.favorite = body.favorite;
-  user.introduce = body.introduce;
+  let game = new this();
+  game.id = body.id;
+  game.password = body.password;
+  game.name = body.name;
+  game.age = parseInt(body.age);
+  game.favorite = body.favorite;
+  ga.introduce = body.introduce;
   user.live = body.live;
   user.coord = coord;
 
@@ -50,6 +47,7 @@ userSchema.methods.modify = function (body) {
   if (body.favorite) this.favorite = body.favorite;
   if (body.coord) this.coord = body.coord;
 
+  // return the Promise
   return this.save();
 }
 
